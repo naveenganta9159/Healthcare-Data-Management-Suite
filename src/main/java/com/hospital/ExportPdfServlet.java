@@ -57,14 +57,13 @@ public class ExportPdfServlet extends HttpServlet {
         PDPage page = new PDPage(PDRectangle.A4);
         document.addPage(page);
 
-        String content = "Price: ₹500, नमस्ते, Hello, ☀️"; // Replace with your actual text
+        String content = "Price: ₹500, नमस्ते, Hello, ☀️"; // Example content
 
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
         contentStream.beginText();
         contentStream.setLeading(14.5f);
         contentStream.newLineAtOffset(50, 750);
 
-        // Split into words and pick font for each
         for (String word : content.split(" ")) {
             PDFont font = getFontForText(word);
             contentStream.setFont(font, 12);
