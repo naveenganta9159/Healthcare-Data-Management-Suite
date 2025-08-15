@@ -34,6 +34,9 @@
         <label>Contact Number</label>
         <input type="tel" name="contact" required>
 
+	<label>Alternative Contact Number</label>
+        <input type="tel" name="contact" required>
+
         <label>Email</label>
         <input type="email" name="email" required>
 
