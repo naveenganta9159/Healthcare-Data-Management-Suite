@@ -1,16 +1,22 @@
 package com.hospital;
 
-import org.apache.pdfbox.pdmodel.*;
-import org.apache.pdfbox.pdmodel.font.*;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import java.io.*;
-import java.util.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
-@WebServlet("/ExportPdfServlet")
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+
+@WebServlet("/exportPdf")
 public class ExportPdfServlet extends HttpServlet {
 
     private List<PDFont> fonts;
@@ -25,59 +31,31 @@ public class ExportPdfServlet extends HttpServlet {
                 PDType0Font.load(dummyDoc, new File(getServletContext().getRealPath("/fonts/NotoSansTamil-Regular.ttf")))
             );
         } catch (IOException e) {
-            throw new ServletException("Error loading fonts", e);
+            throw new ServletException("Error loading fonts: " + e.getMessage(), e);
         }
-    }
-
-    private PDFont getFontForText(String text) {
-        for (PDFont font : fonts) {
-            if (supportsAllChars(font, text)) {
-                return font;
-            }
-        }
-        return fonts.get(0); // fallback
-    }
-
-    private boolean supportsAllChars(PDFont font, String text) {
-        for (char c : text.toCharArray()) {
-            try {
-                font.encode(Character.toString(c));
-            } catch (IllegalArgumentException e) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        PDDocument document = new PDDocument();
-        PDPage page = new PDPage(PDRectangle.A4);
-        document.addPage(page);
-
-        String content = "Price: ₹500, नमस्ते, Hello, ☀️"; // Example content
-
-        PDPageContentStream contentStream = new PDPageContentStream(document, page);
-        contentStream.beginText();
-        contentStream.setLeading(14.5f);
-        contentStream.newLineAtOffset(50, 750);
-
-        for (String word : content.split(" ")) {
-            PDFont font = getFontForText(word);
-            contentStream.setFont(font, 12);
-            contentStream.showText(word + " ");
-        }
-
-        contentStream.endText();
-        contentStream.close();
-
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=\"export.pdf\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"report.pdf\"");
 
-        document.save(response.getOutputStream());
-        document.close();
+        try (PDDocument document = new PDDocument()) {
+            PDPage page = new PDPage();
+            document.addPage(page);
+
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                contentStream.beginText();
+                contentStream.setFont(fonts.get(0), 12); // Default font
+                contentStream.newLineAtOffset(50, 700);
+                contentStream.showText("Hello, PDF with multiple fonts!");
+                contentStream.endText();
+            }
+
+            document.save(response.getOutputStream());
+        }
     }
 }
 
