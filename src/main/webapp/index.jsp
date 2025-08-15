@@ -17,6 +17,9 @@
         <label>First Name</label>
         <input type="text" name="firstName" required>
 
+	<label>Middle Name</label>
+        <input type="text" name="middleName" required>
+
         <label>Last Name</label>
         <input type="text" name="lastName" required>
 
