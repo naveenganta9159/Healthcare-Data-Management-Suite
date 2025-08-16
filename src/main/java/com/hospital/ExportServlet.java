@@ -88,9 +88,10 @@ public class ExportServlet extends HttpServlet {
             return teluguFont;
         } else if (block == Character.UnicodeBlock.BENGALI) {
             return bengaliFont;
-        } else if (Character.getType(c) == Character.SYMBOL
-                || Character.getType(c) == Character.MATH_SYMBOL
-                || Character.getType(c) == Character.CURRENCY_SYMBOL) {
+        } else if (Character.getType(c) == Character.MATH_SYMBOL
+                || Character.getType(c) == Character.CURRENCY_SYMBOL
+		|| Character.getType(c) == Character.MODIFIER_SYMBOL
+                || Character.getType(c) == Character.OTHER_SYMBOL) {
             return symbolsFont;
         } else {
             return bold ? boldFont : regularFont;
