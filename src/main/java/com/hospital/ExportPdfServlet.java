@@ -16,7 +16,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 
-@WebServlet("/exportPdf")
+@WebServlet("/export")
 public class ExportPdfServlet extends HttpServlet {
 
     private List<PDFont> fonts;
@@ -36,21 +36,61 @@ public class ExportPdfServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // ✅ Get form values
+        String name = request.getParameter("name");
+        String dob = request.getParameter("dob");
+        String contact = request.getParameter("contact");
+        String address = request.getParameter("address");
+
+        generatePdf(response, name, dob, contact, address);
+    }
+
+    private void generatePdf(HttpServletResponse response,
+                             String name, String dob, String contact, String address) throws IOException {
+
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=\"report.pdf\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"patient_report.pdf\"");
 
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage();
             document.addPage(page);
 
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+
+                // ✅ Title
                 contentStream.beginText();
-                contentStream.setFont(fonts.get(0), 12); // Default font
-                contentStream.newLineAtOffset(50, 700);
-                contentStream.showText("Hello, PDF with multiple fonts!");
+                contentStream.setFont(fonts.get(0), 16);
+                contentStream.newLineAtOffset(220, 750);
+                contentStream.showText("Patient Report");
+                contentStream.endText();
+
+                // ✅ Line separator
+                contentStream.moveTo(50, 740);
+                contentStream.lineTo(550, 740);
+                contentStream.stroke();
+
+                // ✅ Patient details
+                int y = 700; // starting Y position
+                int lineGap = 25;
+
+                contentStream.beginText();
+                contentStream.setFont(fonts.get(0), 12);
+                contentStream.newLineAtOffset(50, y);
+
+                contentStream.showText("Name: " + (name != null ? name : ""));
+                contentStream.newLineAtOffset(0, -lineGap);
+
+                contentStream.showText("Date of Birth: " + (dob != null ? dob : ""));
+                contentStream.newLineAtOffset(0, -lineGap);
+
+                contentStream.showText("Contact: " + (contact != null ? contact : ""));
+                contentStream.newLineAtOffset(0, -lineGap);
+
+                contentStream.showText("Address: " + (address != null ? address : ""));
+
                 contentStream.endText();
             }
 
