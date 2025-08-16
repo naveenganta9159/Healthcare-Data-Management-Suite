@@ -11,7 +11,7 @@ import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.*;
 
-@WebServlet("/export")
+@WebServlet(urlPatterns = {"/export", "/exportPDF"})
 @MultipartConfig
 public class ExportServlet extends HttpServlet {
 
