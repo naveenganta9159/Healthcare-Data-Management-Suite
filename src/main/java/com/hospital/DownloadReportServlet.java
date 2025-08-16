@@ -2,36 +2,48 @@ package com.hospital;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
-@WebServlet("/downloadReport")
+@WebServlet("/downloadPDF")
 public class DownloadReportServlet extends HttpServlet {
+
+    private static final String REPORTS_DIR = "/opt/hospital_reports";
+
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String rel = req.getParameter("file");
-        if (rel == null || rel.contains("..")) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid file.");
+        String fileName = request.getParameter("file");
+
+        if (fileName == null || fileName.isEmpty()) {
+            response.getWriter().println("Invalid file request!");
             return;
         }
 
-        File pdf = new File("/opt/hospital_reports", rel);
-        if (!pdf.exists()) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+        File file = new File(REPORTS_DIR, fileName);
+
+        if (!file.exists() || file.isDirectory()) {
+            response.getWriter().println("File not found: " + fileName);
             return;
         }
 
-        resp.setContentType("application/pdf");
-        resp.setHeader("Content-Disposition", "attachment; filename=\"" + pdf.getName() + "\"");
+        // Set response headers
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+        response.setContentLengthLong(file.length());
 
-        try (FileInputStream fis = new FileInputStream(pdf);
-             OutputStream os = resp.getOutputStream()) {
-            byte[] buf = new byte[8192];
-            int len;
-            while ((len = fis.read(buf)) != -1) {
-                os.write(buf, 0, len);
+        // Stream file content
+        try (FileInputStream fis = new FileInputStream(file);
+             OutputStream os = response.getOutputStream()) {
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                os.write(buffer, 0, bytesRead);
             }
         }
     }
