@@ -16,7 +16,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 
-@WebServlet("/exportPDF")
+@WebServlet("/export")
 public class ExportPdfServlet extends HttpServlet {
 
     private List<PDFont> fonts;
