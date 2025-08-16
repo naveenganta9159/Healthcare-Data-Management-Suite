@@ -1,3 +1,21 @@
+package com.hospital;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+
 @WebServlet("/export")
 public class ExportPdfServlet extends HttpServlet {
 
@@ -17,22 +35,11 @@ public class ExportPdfServlet extends HttpServlet {
         }
     }
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // ✅ Read query parameters
-        String name = request.getParameter("name");
-        String dob = request.getParameter("dob");
-        String contact = request.getParameter("contact");
-        String address = request.getParameter("address");
-
-        generatePdf(response, name, dob, contact, address);
-    }
-
+    // ✅ Handle POST (form submission)
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // ✅ Read form data
+
         String name = request.getParameter("name");
         String dob = request.getParameter("dob");
         String contact = request.getParameter("contact");
@@ -41,6 +48,20 @@ public class ExportPdfServlet extends HttpServlet {
         generatePdf(response, name, dob, contact, address);
     }
 
+    // ✅ Handle GET (query params)
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String name = request.getParameter("name");
+        String dob = request.getParameter("dob");
+        String contact = request.getParameter("contact");
+        String address = request.getParameter("address");
+
+        generatePdf(response, name, dob, contact, address);
+    }
+
+    // ✅ Common PDF generator
     private void generatePdf(HttpServletResponse response,
                              String name, String dob, String contact, String address) throws IOException {
 
@@ -52,19 +73,20 @@ public class ExportPdfServlet extends HttpServlet {
             document.addPage(page);
 
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                // ✅ Title
+
+                // Title
                 contentStream.beginText();
                 contentStream.setFont(fonts.get(0), 16);
                 contentStream.newLineAtOffset(220, 750);
                 contentStream.showText("Patient Report");
                 contentStream.endText();
 
-                // ✅ Line separator
+                // Line separator
                 contentStream.moveTo(50, 740);
                 contentStream.lineTo(550, 740);
                 contentStream.stroke();
 
-                // ✅ Patient details
+                // Patient details
                 int y = 700;
                 int lineGap = 25;
 
