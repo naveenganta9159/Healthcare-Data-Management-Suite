@@ -8,6 +8,8 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Files;
 
+@WebServlet("/download")
+
 public class DownloadReportServlet extends HttpServlet {
 
     private String baseDir;

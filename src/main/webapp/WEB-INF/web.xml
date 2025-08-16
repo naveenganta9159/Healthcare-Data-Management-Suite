@@ -6,39 +6,7 @@
 
   <display-name>Hospital Records</display-name>
 
-  <!-- Base directory for archived PDFs (override via env if you want) -->
-  <context-param>
-    <param-name>archiveBaseDir</param-name>
-    <param-value>/opt/hospital_reports</param-value>
-  </context-param>
-
-  <servlet>
-    <servlet-name>ExportPdfServlet</servlet-name>
-    <servlet-class>com.hospital.ExportPdfServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ExportPdfServlet</servlet-name>
-    <url-pattern>/export</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
-    <servlet-name>ViewReportsServlet</servlet-name>
-    <servlet-class>com.hospital.ViewReportsServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ViewReportsServlet</servlet-name>
-    <url-pattern>/reports</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
-    <servlet-name>DownloadReportServlet</servlet-name>
-    <servlet-class>com.hospital.DownloadReportServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>DownloadReportServlet</servlet-name>
-    <url-pattern>/download</url-pattern>
-  </servlet-mapping>
-
+<!-- Welcome file -->
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>

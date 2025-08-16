@@ -10,6 +10,8 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@WebServlet("/reports")
+
 public class ViewReportsServlet extends HttpServlet {
 
     private String baseDir;
