@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
-@WebServlet("/downloadPDF")
+@WebServlet("/download")
 public class DownloadReportServlet extends HttpServlet {
 
     private static final String REPORTS_DIR = "/opt/hospital_reports";
