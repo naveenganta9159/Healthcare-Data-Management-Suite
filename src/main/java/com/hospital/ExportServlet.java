@@ -17,9 +17,7 @@ public class ExportServlet extends HttpServlet {
     private static final String REPORTS_DIR = "/opt/hospital_reports";
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Collect patient data
         String firstName = request.getParameter("firstName");
         String lastName = request.getParameter("lastName");
@@ -62,9 +60,13 @@ public class ExportServlet extends HttpServlet {
 
         // ==== ✅ PDF GENERATION + VALIDATION ====
         try (PDDocument document = new PDDocument()) {
-            // Fonts (replace with your font loading helper if needed)
-            PDFont regular = PDType1Font.HELVETICA;
-            PDFont boldF   = PDType1Font.HELVETICA_BOLD;
+
+            // ✅ Load Unicode fonts (supports ₹ + Indian languages)
+            File fontFile = new File("/opt/tomcat/webapps/hospital-records/WEB-INF/fonts/NotoSans-Regular.ttf");
+            File fontBoldFile = new File("/opt/tomcat/webapps/hospital-records/WEB-INF/fonts/NotoSans-Bold.ttf");
+
+            PDFont regular = PDType0Font.load(document, new FileInputStream(fontFile));
+            PDFont boldF = PDType0Font.load(document, new FileInputStream(fontBoldFile));
 
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
@@ -81,35 +83,55 @@ public class ExportServlet extends HttpServlet {
 
                 // Personal details
                 content.setFont(regular, 12);
-                content.showText("Name: " + firstName + " " + lastName); content.newLine();
-                content.showText("DOB: " + dob + " | Gender: " + gender); content.newLine();
-                content.showText("Contact: " + contact + " | Alt: " + altContact); content.newLine();
-                content.showText("Email: " + email); content.newLine();
-                content.showText("Address: " + address); content.newLine();
-                content.showText("Aadhar: " + aadhar + " | Blood Group: " + bloodGroup); content.newLine();
+                content.showText("Name: " + firstName + " " + lastName);
+                content.newLine();
+                content.showText("DOB: " + dob + " | Gender: " + gender);
+                content.newLine();
+                content.showText("Contact: " + contact + " | Alt: " + altContact);
+                content.newLine();
+                content.showText("Email: " + email);
+                content.newLine();
+                content.showText("Address: " + address);
+                content.newLine();
+                content.showText("Aadhar: " + aadhar + " | Blood Group: " + bloodGroup);
+                content.newLine();
 
                 // Medical
                 content.newLine();
-                content.showText("Medical History: " + medicalHistory); content.newLine();
-                content.showText("Medications: " + medications); content.newLine();
-                content.showText("Allergies: " + allergies); content.newLine();
+                content.showText("Medical History: " + medicalHistory);
+                content.newLine();
+                content.showText("Medications: " + medications);
+                content.newLine();
+                content.showText("Allergies: " + allergies);
+                content.newLine();
 
                 // Insurance
                 content.newLine();
-                content.showText("Insurance: " + insurance + " | Policy: " + policyNumber); content.newLine();
+                content.showText("Insurance: " + insurance + " | Policy: " + policyNumber);
+                content.newLine();
 
                 // Visit & billing
                 content.newLine();
-                content.showText("Visit Date: " + visitDate + " | Consultation: " + consultationType); content.newLine();
-                content.showText("Service: " + serviceDescription); content.newLine();
-                content.showText("Tests Ordered: " + testsOrdered); content.newLine();
-                content.showText("Test Results: " + testResults); content.newLine();
-                content.showText("Medications Prescribed: " + medicationsPrescribed); content.newLine();
-                content.showText("Consultation Fee: ₹" + consultationFee); content.newLine();
-                content.showText("Test Charges: ₹" + testCharges); content.newLine();
-                content.showText("Medicine Charges: ₹" + medicineCharges); content.newLine();
-                content.showText("Other Charges: ₹" + otherCharges); content.newLine();
-                content.showText("Total Amount: ₹" + totalAmount + " | Status: " + paymentStatus); content.newLine();
+                content.showText("Visit Date: " + visitDate + " | Consultation: " + consultationType);
+                content.newLine();
+                content.showText("Service: " + serviceDescription);
+                content.newLine();
+                content.showText("Tests Ordered: " + testsOrdered);
+                content.newLine();
+                content.showText("Test Results: " + testResults);
+                content.newLine();
+                content.showText("Medications Prescribed: " + medicationsPrescribed);
+                content.newLine();
+                content.showText("Consultation Fee: ₹" + consultationFee);
+                content.newLine();
+                content.showText("Test Charges: ₹" + testCharges);
+                content.newLine();
+                content.showText("Medicine Charges: ₹" + medicineCharges);
+                content.newLine();
+                content.showText("Other Charges: ₹" + otherCharges);
+                content.newLine();
+                content.showText("Total Amount: ₹" + totalAmount + " | Status: " + paymentStatus);
+                content.newLine();
 
                 // Notes
                 content.newLine();
