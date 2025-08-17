@@ -17,7 +17,9 @@ public class ExportServlet extends HttpServlet {
     private static final String REPORTS_DIR = "/opt/hospital_reports";
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
         // Collect patient data
         String firstName = request.getParameter("firstName");
         String lastName = request.getParameter("lastName");
@@ -61,12 +63,26 @@ public class ExportServlet extends HttpServlet {
         // ==== ✅ PDF GENERATION + VALIDATION ====
         try (PDDocument document = new PDDocument()) {
 
-            // ✅ Load Unicode fonts (supports ₹ + Indian languages)
-            File fontFile = new File("/opt/tomcat/webapps/hospital-records/WEB-INF/fonts/NotoSans-Regular.ttf");
-            File fontBoldFile = new File("/opt/tomcat/webapps/hospital-records/WEB-INF/fonts/NotoSans-Bold.ttf");
+            // ==== ✅ Font Loading with Fallback ====
+            PDFont regular;
+            PDFont boldF;
+            try {
+                File fontDir = new File(getServletContext().getRealPath("/WEB-INF/fonts"));
+                File regularFontFile = new File(fontDir, "NotoSans-Regular.ttf");
+                File boldFontFile = new File(fontDir, "NotoSans-Bold.ttf");
 
-            PDFont regular = PDType0Font.load(document, new FileInputStream(fontFile));
-            PDFont boldF = PDType0Font.load(document, new FileInputStream(fontBoldFile));
+                if (regularFontFile.exists() && boldFontFile.exists()) {
+                    regular = PDType0Font.load(document, new FileInputStream(regularFontFile));
+                    boldF = PDType0Font.load(document, new FileInputStream(boldFontFile));
+                    System.out.println("✅ Loaded NotoSans fonts from " + fontDir.getAbsolutePath());
+                } else {
+                    throw new IOException("NotoSans fonts not found, using fallback.");
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Font load failed: " + e.getMessage() + " → Falling back to Helvetica");
+                regular = PDType1Font.HELVETICA;
+                boldF = PDType1Font.HELVETICA_BOLD;
+            }
 
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
