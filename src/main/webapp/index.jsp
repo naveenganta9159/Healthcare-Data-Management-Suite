@@ -12,7 +12,7 @@
     <p>Fill in details, attach reports/bills, and click "Generate & Save PDF".</p>
     <hr>
 
-    <form action="exportPDF" method="post" enctype="multipart/form-data">
+    <form action="export" method="post" enctype="multipart/form-data">
         <h2>Personal Details</h2>
         <label>First Name</label>
         <input type="text" name="firstName" required>
