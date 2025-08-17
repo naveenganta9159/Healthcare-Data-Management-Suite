@@ -1,114 +1,87 @@
 package com.hospital;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.*;
-
+import java.util.*;
 import org.apache.pdfbox.pdmodel.*;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.*;
 
 @WebServlet(urlPatterns = {"/export", "/exportPDF"})
-@MultipartConfig
 public class ExportServlet extends HttpServlet {
 
-    private static final String REPORTS_DIR = "/opt/hospital_reports";
+    // Store loaded fonts in memory
+    private final Map<String, File> fontFiles = new HashMap<>();
+
+    // ✅ Utility method to resolve font path
+    private File resolveFontPath(ServletContext context, String fontFile) {
+        // First try WEB-INF/fonts
+        String webInfPath = context.getRealPath("/WEB-INF/fonts/" + fontFile);
+        if (webInfPath != null && new File(webInfPath).exists()) {
+            return new File(webInfPath);
+        }
+
+        // Then try /fonts
+        String fontsPath = context.getRealPath("/fonts/" + fontFile);
+        if (fontsPath != null && new File(fontsPath).exists()) {
+            return new File(fontsPath);
+        }
+
+        throw new RuntimeException("❌ Font file not found: " + fontFile);
+    }
+
+    @Override
+    public void init() throws ServletException {
+        try {
+            ServletContext context = getServletContext();
+
+            // ✅ Preload all required fonts
+            String[] fontNames = {
+                "NotoSans-Regular.ttf",
+                "NotoSans-Bold.ttf",
+                "NotoSansTamil-Regular.ttf",
+                "NotoSansTelugu-Regular.ttf",
+                "NotoSansBengali-Regular.ttf",
+                "NotoSansDevanagari-Regular.ttf",
+                "NotoSansSymbols-Regular.ttf"
+            };
+
+            for (String fontName : fontNames) {
+                File f = resolveFontPath(context, fontName);
+                fontFiles.put(fontName, f);
+                System.out.println("✅ Loaded font path: " + f.getAbsolutePath());
+            }
+
+        } catch (Exception e) {
+            throw new ServletException("Failed to initialize fonts: " + e.getMessage(), e);
+        }
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        try (PDDocument document = new PDDocument()) {
 
-        String patientName = request.getParameter("patientName");
-        String patientId = request.getParameter("patientId");
-        String diagnosis = request.getParameter("diagnosis");
-        String languageText = request.getParameter("languageText"); // Telugu/Tamil/Bengali/₹ etc.
+            // Example: load fonts into PDFBox document
+            PDType0Font regular = PDType0Font.load(document, fontFiles.get("NotoSans-Regular.ttf"));
+            PDType0Font bold    = PDType0Font.load(document, fontFiles.get("NotoSans-Bold.ttf"));
+            PDType0Font tamil   = PDType0Font.load(document, fontFiles.get("NotoSansTamil-Regular.ttf"));
+            PDType0Font telugu  = PDType0Font.load(document, fontFiles.get("NotoSansTelugu-Regular.ttf"));
+            PDType0Font bengali = PDType0Font.load(document, fontFiles.get("NotoSansBengali-Regular.ttf"));
+            PDType0Font devanagari = PDType0Font.load(document, fontFiles.get("NotoSansDevanagari-Regular.ttf"));
+            PDType0Font symbols = PDType0Font.load(document, fontFiles.get("NotoSansSymbols-Regular.ttf"));
 
-        if (patientName == null) patientName = "Unknown";
-        if (patientId == null) patientId = "N/A";
-        if (diagnosis == null) diagnosis = "N/A";
-        if (languageText == null) languageText = "";
+            // TODO: Your PDF content generation here using the fonts
 
-        // Ensure reports dir exists
-        File reportsDir = new File(REPORTS_DIR);
-        if (!reportsDir.exists()) {
-            reportsDir.mkdirs();
-        }
+            // Send PDF back to client
+            response.setContentType("application/pdf");
+            response.setHeader("Content-Disposition", "attachment; filename=\"report.pdf\"");
+            document.save(response.getOutputStream());
 
-        // Create PDF
-        PDDocument document = new PDDocument();
-        PDPage page = new PDPage(PDRectangle.A4);
-        document.addPage(page);
-
-        // ==== ✅ Load Unicode Fonts (NotoSans) ====
-        PDFont regular;
-        PDFont boldF;
-        try {
-            File fontDir = new File(getServletContext().getRealPath("/WEB-INF/fonts"));
-            File regularFontFile = new File(fontDir, "NotoSans-Regular.ttf");
-            File boldFontFile = new File(fontDir, "NotoSans-Bold.ttf");
-
-            if (regularFontFile.exists() && boldFontFile.exists()) {
-                regular = PDType0Font.load(document, new FileInputStream(regularFontFile), true);
-                boldF = PDType0Font.load(document, new FileInputStream(boldFontFile), true);
-                System.out.println("✅ Loaded NotoSans Unicode fonts.");
-            } else {
-                throw new IOException("❌ NotoSans fonts not found in WEB-INF/fonts");
-            }
         } catch (Exception e) {
-            throw new ServletException("Cannot load Unicode fonts. Please check WEB-INF/fonts folder.", e);
-        }
-
-        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-            contentStream.beginText();
-            contentStream.setFont(boldF, 18);
-            contentStream.newLineAtOffset(50, 750);
-            contentStream.showText("Patient Report");
-            contentStream.endText();
-
-            contentStream.beginText();
-            contentStream.setFont(regular, 12);
-            contentStream.newLineAtOffset(50, 700);
-            contentStream.showText("Patient Name: " + patientName);
-            contentStream.endText();
-
-            contentStream.beginText();
-            contentStream.setFont(regular, 12);
-            contentStream.newLineAtOffset(50, 680);
-            contentStream.showText("Patient ID: " + patientId);
-            contentStream.endText();
-
-            contentStream.beginText();
-            contentStream.setFont(regular, 12);
-            contentStream.newLineAtOffset(50, 660);
-            contentStream.showText("Diagnosis: " + diagnosis);
-            contentStream.endText();
-
-            // ✅ Add multilingual / special symbol text (₹, తెలుగు, தமிழ், বাংলা)
-            contentStream.beginText();
-            contentStream.setFont(regular, 12);
-            contentStream.newLineAtOffset(50, 640);
-            contentStream.showText("Additional Notes: " + languageText);
-            contentStream.endText();
-        }
-
-        // Save PDF
-        String fileName = "report_" + patientId + ".pdf";
-        File pdfFile = new File(reportsDir, fileName);
-        document.save(pdfFile);
-        document.close();
-
-        // Send PDF back
-        response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-        try (FileInputStream fis = new FileInputStream(pdfFile);
-             OutputStream os = response.getOutputStream()) {
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                os.write(buffer, 0, bytesRead);
-            }
+            throw new ServletException("Error generating PDF: " + e.getMessage(), e);
         }
     }
 }
