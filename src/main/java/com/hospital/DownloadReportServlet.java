@@ -19,14 +19,14 @@ public class DownloadReportServlet extends HttpServlet {
         String fileName = request.getParameter("file");
 
         if (fileName == null || fileName.isEmpty()) {
-            response.getWriter().println("Invalid file request!");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid file request!");
             return;
         }
 
         File file = new File(REPORTS_DIR, fileName);
 
         if (!file.exists() || file.isDirectory()) {
-            response.getWriter().println("File not found: " + fileName);
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found: " + fileName);
             return;
         }
 
@@ -35,16 +35,17 @@ public class DownloadReportServlet extends HttpServlet {
         response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
         response.setContentLengthLong(file.length());
 
-        // Stream file content
-        try (FileInputStream fis = new FileInputStream(file);
-             OutputStream os = response.getOutputStream()) {
+        // Stream file content safely
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+             BufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream())) {
 
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[8192];
             int bytesRead;
 
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                os.write(buffer, 0, bytesRead);
+            while ((bytesRead = bis.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
             }
+            bos.flush(); // 🔑 Ensure everything is written
         }
     }
 }
