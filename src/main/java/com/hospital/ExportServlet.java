@@ -59,30 +59,99 @@ public class ExportServlet extends HttpServlet {
         }
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try (PDDocument document = new PDDocument()) {
+   @Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    try (PDDocument document = new PDDocument()) {
 
-            // Example: load fonts into PDFBox document
-            PDType0Font regular = PDType0Font.load(document, fontFiles.get("NotoSans-Regular.ttf"));
-            PDType0Font bold    = PDType0Font.load(document, fontFiles.get("NotoSans-Bold.ttf"));
-            PDType0Font tamil   = PDType0Font.load(document, fontFiles.get("NotoSansTamil-Regular.ttf"));
-            PDType0Font telugu  = PDType0Font.load(document, fontFiles.get("NotoSansTelugu-Regular.ttf"));
-            PDType0Font bengali = PDType0Font.load(document, fontFiles.get("NotoSansBengali-Regular.ttf"));
-            PDType0Font devanagari = PDType0Font.load(document, fontFiles.get("NotoSansDevanagari-Regular.ttf"));
-            PDType0Font symbols = PDType0Font.load(document, fontFiles.get("NotoSansSymbols-Regular.ttf"));
+        // Load fonts
+        PDType0Font regular    = PDType0Font.load(document, fontFiles.get("NotoSans-Regular.ttf"));
+        PDType0Font bold       = PDType0Font.load(document, fontFiles.get("NotoSans-Bold.ttf"));
+        PDType0Font tamil      = PDType0Font.load(document, fontFiles.get("NotoSansTamil-Regular.ttf"));
+        PDType0Font telugu     = PDType0Font.load(document, fontFiles.get("NotoSansTelugu-Regular.ttf"));
+        PDType0Font bengali    = PDType0Font.load(document, fontFiles.get("NotoSansBengali-Regular.ttf"));
+        PDType0Font devanagari = PDType0Font.load(document, fontFiles.get("NotoSansDevanagari-Regular.ttf"));
+        PDType0Font symbols    = PDType0Font.load(document, fontFiles.get("NotoSansSymbols-Regular.ttf"));
 
-            // TODO: Your PDF content generation here using the fonts
+        // ✅ Extract patient details from request
+        String patientName      = request.getParameter("patientName");
+        String age              = request.getParameter("age");
+        String gender           = request.getParameter("gender");
+        String diagnosis        = request.getParameter("diagnosis");
+        String dischargeSummary = request.getParameter("dischargeSummary");
+        String lang             = request.getParameter("lang"); // en, ta, te, bn, hi
 
-            // Send PDF back to client
-            response.setContentType("application/pdf");
-            response.setHeader("Content-Disposition", "attachment; filename=\"report.pdf\"");
-            document.save(response.getOutputStream());
+        if (patientName == null) patientName = "Unknown";
+        if (age == null) age = "N/A";
+        if (gender == null) gender = "N/A";
+        if (diagnosis == null) diagnosis = "N/A";
+        if (dischargeSummary == null) dischargeSummary = "No summary provided.";
 
-        } catch (Exception e) {
-            throw new ServletException("Error generating PDF: " + e.getMessage(), e);
+        // ✅ Add a page
+        PDPage page = new PDPage();
+        document.addPage(page);
+
+        try (PDPageContentStream content = new PDPageContentStream(document, page)) {
+            int y = 720;
+
+            // Title
+            content.beginText();
+            content.setFont(bold, 18);
+            content.newLineAtOffset(100, y);
+            content.showText("Hospital Discharge Report");
+            content.endText();
+            y -= 40;
+
+            // Patient Details
+            content.beginText();
+            content.setFont(regular, 14);
+            content.newLineAtOffset(100, y);
+            content.showText("Patient Name: " + patientName);
+            content.endText();
+            y -= 25;
+
+            content.beginText();
+            content.setFont(regular, 14);
+            content.newLineAtOffset(100, y);
+            content.showText("Age: " + age + "   Gender: " + gender);
+            content.endText();
+            y -= 25;
+
+            content.beginText();
+            content.setFont(regular, 14);
+            content.newLineAtOffset(100, y);
+            content.showText("Diagnosis: " + diagnosis);
+            content.endText();
+            y -= 25;
+
+            // Discharge Summary (multi-language support)
+            content.beginText();
+            content.setFont(bold, 14);
+            content.newLineAtOffset(100, y);
+            content.showText("Discharge Summary:");
+            content.endText();
+            y -= 25;
+
+            content.beginText();
+            PDType0Font chosenFont = regular; // default
+            if ("ta".equals(lang)) chosenFont = tamil;
+            else if ("te".equals(lang)) chosenFont = telugu;
+            else if ("bn".equals(lang)) chosenFont = bengali;
+            else if ("hi".equals(lang)) chosenFont = devanagari;
+
+            content.setFont(chosenFont, 14);
+            content.newLineAtOffset(100, y);
+            content.showText(dischargeSummary);
+            content.endText();
         }
+
+        // ✅ Send PDF
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"report.pdf\"");
+        document.save(response.getOutputStream());
+
+    } catch (Exception e) {
+        throw new ServletException("Error generating PDF: " + e.getMessage(), e);
     }
 }
 
