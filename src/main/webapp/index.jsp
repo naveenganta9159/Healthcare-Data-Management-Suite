@@ -13,6 +13,23 @@
     <hr>
 
     <form action="export" method="post" enctype="multipart/form-data">
+   <!-- Hospital Info -->
+        <label>Hospital Name:</label>
+        <input type="text" name="hospitalName" value="ABC Multispeciality Hospital" required>
+
+        <label>Report Title:</label>
+        <input type="text" name="reportTitle" value="Patient Report" required>
+
+        <!-- Patient & Doctor Info -->
+        <label>Patient ID:</label>
+        <input type="text" name="patientId" required>
+
+        <label>Doctor Name:</label>
+        <input type="text" name="doctorName" required>
+
+        <label>Department:</label>
+        <input type="text" name="department" required>
+
         <h2>Personal Details</h2>
         <label>First Name</label>
         <input type="text" name="firstName" required>
