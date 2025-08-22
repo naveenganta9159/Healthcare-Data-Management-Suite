@@ -86,7 +86,7 @@ public class ExportServlet extends HttpServlet {
         content.beginText();
         content.setFont(bold, 18);
         content.newLineAtOffset(150, page.getMediaBox().getHeight() - 60);
-        content.showText("ABC Multispeciality Hospital");
+        content.showText("Multispeciality Hospital");
         content.endText();
 
         // Report Title

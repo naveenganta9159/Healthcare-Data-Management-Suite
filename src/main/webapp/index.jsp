@@ -15,7 +15,7 @@
     <form action="export" method="post" enctype="multipart/form-data">
    <!-- Hospital Info -->
         <label>Hospital Name:</label>
-        <input type="text" name="hospitalName" value="ABC Multispeciality Hospital" required>
+        <input type="text" name="hospitalName" value="Multispeciality Hospital" required>
 
         <label>Report Title:</label>
         <input type="text" name="reportTitle" value="Patient Report" required>
